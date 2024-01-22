@@ -1,0 +1,18 @@
+spring:
+  jpa:
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+        default_batch_fetch_size: 200
+#  sql:
+#    init:
+#      data-locations: classpath:data_h2.sql
+#      mode: always
+logging:
+  level:
+    root: INFO
+    com.ant.hurry: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
