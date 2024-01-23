@@ -1,31 +1,40 @@
 package com.example.akis.base.rq;
 
+import com.example.akis.base.rsData.RsData;
 import com.example.akis.boundedContext.member.entity.Member;
 import com.example.akis.boundedContext.member.service.MemberService;
-import com.example.akis.rsData.RsData;
 import com.example.akis.standard.util.Ut;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.web.servlet.LocaleResolver;
 
 import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
 
 @Component
 @RequestScope
 public class Rq {
     private final MemberService memberService;
     private final HttpServletRequest req;
+    private final MessageSource messageSource;
+    private final LocaleResolver localeResolver;
+    private Locale locale;
     private final HttpServletResponse resp;
     private final HttpSession session;
     private final User user;
-    private Member member = null; // 레이지 로딩, 처음부터 넣지 않고, 요청이 들어올 때 넣는다.
+    private Member member = null;
 
-    public Rq(MemberService memberService, HttpServletRequest req, HttpServletResponse resp, HttpSession session) {
+    public Rq(MemberService memberService, MessageSource messageSource, LocaleResolver localeResolver, HttpServletRequest req, HttpServletResponse resp, HttpSession session) {
+        this.messageSource = messageSource;
+        this.localeResolver = localeResolver;
         this.memberService = memberService;
         this.req = req;
         this.resp = resp;
@@ -52,13 +61,6 @@ public class Rq {
         return !isLogin();
     }
 
-    // 관리자 확인
-    public boolean isAdmin() {
-        if(isLogout()) return false;
-
-        return getMember().isAdmin();
-    }
-
     // 로그인 된 회원의 객체
     public Member getMember() {
         if (isLogout()) return null;
@@ -71,12 +73,14 @@ public class Rq {
         return member;
     }
 
+
     // 뒤로가기 + 메세지
     public String historyBack(String msg) {
         String referer = req.getHeader("referer");
         String key = "historyBackErrorMsg___" + referer;
         req.setAttribute("localStorageKeyAboutHistoryBackErrorMsg", key);
         req.setAttribute("historyBackErrorMsg", msg);
+        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         return "common/js";
     }
 
@@ -104,4 +108,39 @@ public class Rq {
     private String msgWithTtl(String msg) {
         return Ut.url.encode(msg) + ";ttl=" + new Date().getTime();
     }
+
+    public void setSessionAttr(String name, String value) {
+        session.setAttribute(name, value);
+    }
+
+    public <T> T getSessionAttr(String name, T defaultValue) {
+        try {
+            return (T) session.getAttribute(name);
+        } catch (Exception ignored) {
+        }
+
+        return defaultValue;
+    }
+
+    public void removeSessionAttr(String name) {
+        session.removeAttribute(name);
+    }
+
+    public String getCText(String code, String... args) {
+        return messageSource.getMessage(code, args, getLocale());
+    }
+
+    private Locale getLocale() {
+        if (locale == null) locale = localeResolver.resolveLocale(req);
+
+        return locale;
+    }
+
+    public String getParamsJsonStr() {
+        Map<String, String[]> parameterMap = req.getParameterMap();
+
+        return Ut.json.toStr(parameterMap);
+    }
+
+
 }

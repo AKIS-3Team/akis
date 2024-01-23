@@ -1,4 +1,4 @@
-package com.example.akis.rsData;
+package com.example.akis.base.rsData;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
