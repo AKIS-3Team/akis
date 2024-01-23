@@ -44,4 +44,8 @@ public class Member extends BaseEntity {
         return grantedAuthorities;
     }
 
+    public boolean isAdmin() {
+        return "admin".equals(username);
+    }
+
 }

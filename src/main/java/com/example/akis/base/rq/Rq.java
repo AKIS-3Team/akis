@@ -52,6 +52,13 @@ public class Rq {
         return !isLogin();
     }
 
+    // 관리자 확인
+    public boolean isAdmin() {
+        if(isLogout()) return false;
+
+        return getMember().isAdmin();
+    }
+
     // 로그인 된 회원의 객체
     public Member getMember() {
         if (isLogout()) return null;
